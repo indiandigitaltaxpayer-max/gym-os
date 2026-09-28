@@ -1,0 +1,26 @@
+{
+  "name": "@gym/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "generate": "prisma generate",
+    "postinstall": "prisma generate",
+    "migrate": "prisma migrate dev --name init",
+    "seed": "tsx prisma/seed.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "node -e \"console.log('database: no tests yet')\""
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "argon2": "^0.45.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.16.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

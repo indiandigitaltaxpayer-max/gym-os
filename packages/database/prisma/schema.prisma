@@ -1,0 +1,750 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum MemberStatus {
+  LEAD
+  TRIAL
+  ACTIVE
+  FROZEN
+  EXPIRED
+  CANCELLED
+}
+
+enum Gender {
+  M
+  F
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  FROZEN
+  EXPIRED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PARTIALLY_PAID
+  PAID
+  VOID
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  CAPTURED
+  FAILED
+  REFUNDED
+  REVERSED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  BANK_TRANSFER
+  ONLINE
+  OTHER
+}
+
+enum CheckInSource {
+  FRONT_DESK
+  QR
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  TRIAL_SCHEDULED
+  TRIAL_COMPLETED
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WALK_IN
+  PHONE
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  OTHER
+}
+
+enum FollowUpStatus {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum LeadActivityType {
+  CREATED
+  UPDATED
+  STAGE_CHANGED
+  ASSIGNED
+  NOTE
+  FOLLOW_UP_SCHEDULED
+  FOLLOW_UP_COMPLETED
+  FOLLOW_UP_CANCELLED
+  CONVERTED
+  ARCHIVED
+  REACTIVATED
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  IN_APP
+}
+
+enum NotificationKind {
+  MEMBERSHIP_RENEWAL
+  PAYMENT_DUE
+  LEAD_FOLLOW_UP
+  CUSTOM
+}
+
+enum NotificationStatus {
+  SCHEDULED
+  QUEUED
+  PROCESSING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum DeliveryAttemptStatus {
+  STARTED
+  SENT
+  FAILED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  EXPORT
+  IMPORT
+  PAYMENT
+  REFUND
+  CHECK_IN
+  LOGOUT
+  INVITE
+  ACCEPT_INVITE
+  ROLE_CHANGE
+  DISABLE_USER
+  ARCHIVE
+  REACTIVATE
+  NOTE
+  ASSIGN_MEMBERSHIP
+  RENEW_MEMBERSHIP
+  FREEZE_MEMBERSHIP
+  RESUME_MEMBERSHIP
+  CANCEL_MEMBERSHIP
+  ISSUE_INVOICE
+  VOID_INVOICE
+  REVERSE_PAYMENT
+  ISSUE_QR
+  REVOKE_QR
+  CREATE_LEAD
+  UPDATE_LEAD
+  STAGE_LEAD
+  ASSIGN_LEAD
+  SCHEDULE_FOLLOW_UP
+  COMPLETE_FOLLOW_UP
+  CANCEL_FOLLOW_UP
+  CONVERT_LEAD
+  CREATE_NOTIFICATION_TEMPLATE
+  UPDATE_NOTIFICATION_TEMPLATE
+  QUEUE_NOTIFICATION
+  RETRY_NOTIFICATION
+  CANCEL_NOTIFICATION
+}
+
+model Tenant {
+  id                    String                 @id @default(cuid())
+  name                  String
+  slug                  String                 @unique
+  status                TenantStatus           @default(TRIAL)
+  currency              String                 @default("INR")
+  timezone              String                 @default("Asia/Kolkata")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  branches              Branch[]
+  users                 User[]
+  members               Member[]
+  plans                 MembershipPlan[]
+  memberships           Membership[]
+  invoices              Invoice[]
+  payments              Payment[]
+  checkIns              CheckIn[]
+  auditEvents           AuditEvent[]
+  authSessions          AuthSession[]
+  invitations           StaffInvitation[]
+  memberNotes           MemberNote[]
+  memberSequence        Int                    @default(0)
+  invoiceSequence       Int                    @default(0)
+  receiptSequence       Int                    @default(0)
+  invoiceItems          InvoiceLineItem[]
+  qrCredentials         MemberQrCredential[]
+  leads                 Lead[]
+  followUps             FollowUpTask[]
+  leadActivities        LeadActivity[]
+  notificationTemplates NotificationTemplate[]
+  notificationEvents    NotificationEvent[]
+  notificationPolicy    NotificationPolicy?
+}
+
+model Branch {
+  id        String       @id @default(cuid())
+  tenantId  String
+  name      String
+  code      String
+  address   String?
+  timezone  String       @default("Asia/Kolkata")
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  members   Member[]
+  checkIns  CheckIn[]
+  invoices  Invoice[]
+  users     UserBranch[]
+  leads     Lead[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model User {
+  id                   String               @id @default(cuid())
+  tenantId             String
+  email                String
+  name                 String
+  passwordHash         String?
+  status               UserStatus           @default(INVITED)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branches             UserBranch[]
+  roles                UserRole[]
+  auditEvents          AuditEvent[]
+  authSessions         AuthSession[]
+  invitationsSent      StaffInvitation[]    @relation("InvitationSender")
+  memberNotes          MemberNote[]         @relation("MemberNoteAuthor")
+  invoicesIssued       Invoice[]            @relation("InvoiceIssuer")
+  invoicesVoided       Invoice[]            @relation("InvoiceVoidUser")
+  paymentsRecorded     Payment[]            @relation("PaymentRecorder")
+  paymentsReversed     Payment[]            @relation("PaymentReverser")
+  checkInsRecorded     CheckIn[]            @relation("CheckInRecorder")
+  qrCredentialsIssued  MemberQrCredential[] @relation("QrCredentialIssuer")
+  assignedLeads        Lead[]               @relation("LeadAssignee")
+  leadsCreated         Lead[]               @relation("LeadCreator")
+  followUpsAssigned    FollowUpTask[]       @relation("FollowUpAssignee")
+  followUpsCreated     FollowUpTask[]       @relation("FollowUpCreator")
+  leadActivities       LeadActivity[]       @relation("LeadActivityActor")
+  notificationsCreated NotificationEvent[]  @relation("NotificationCreator")
+  lastLoginAt          DateTime?
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Role {
+  id          String            @id @default(cuid())
+  tenantId    String?
+  name        String
+  permissions String[]
+  users       UserRole[]
+  invitations StaffInvitation[]
+
+  @@unique([tenantId, name])
+}
+
+model AuthSession {
+  id         String    @id @default(cuid())
+  tenantId   String
+  userId     String
+  tokenHash  String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime  @default(now())
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([expiresAt])
+}
+
+model StaffInvitation {
+  id          String    @id @default(cuid())
+  tenantId    String
+  email       String
+  name        String
+  roleId      String
+  branchIds   String[]
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  invitedById String
+  createdAt   DateTime  @default(now())
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id])
+  invitedBy   User      @relation("InvitationSender", fields: [invitedById], references: [id])
+
+  @@index([tenantId, email])
+  @@index([expiresAt])
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model UserBranch {
+  userId   String
+  branchId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@id([userId, branchId])
+}
+
+model Member {
+  id                String              @id @default(cuid())
+  tenantId          String
+  homeBranchId      String
+  memberNumber      String
+  firstName         String
+  lastName          String
+  email             String?
+  phone             String
+  dateOfBirth       DateTime?
+  emergencyName     String?
+  emergencyPhone    String?
+  gender            Gender?
+  heightCm          Int?
+  weightKg          Float?
+  address           String?
+  source            String?
+  status            MemberStatus        @default(LEAD)
+  joinedAt          DateTime            @default(now())
+  archivedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  homeBranch        Branch              @relation(fields: [homeBranchId], references: [id])
+  memberships       Membership[]
+  invoices          Invoice[]
+  checkIns          CheckIn[]
+  notes             MemberNote[]
+  qrCredential      MemberQrCredential?
+  convertedFromLead Lead?
+
+  @@unique([tenantId, memberNumber])
+  @@index([tenantId, phone])
+  @@index([tenantId, status])
+  @@index([tenantId, homeBranchId, archivedAt])
+}
+
+model Lead {
+  id                String         @id @default(cuid())
+  tenantId          String
+  branchId          String
+  assignedToUserId  String
+  createdByUserId   String
+  convertedMemberId String?        @unique
+  firstName         String
+  lastName          String
+  phone             String
+  email             String?
+  source            LeadSource
+  sourceDetail      String?
+  stage             LeadStage      @default(NEW)
+  lossReason        String?
+  convertedAt       DateTime?
+  archivedAt        DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch            Branch         @relation(fields: [branchId], references: [id])
+  assignedTo        User           @relation("LeadAssignee", fields: [assignedToUserId], references: [id])
+  createdBy         User           @relation("LeadCreator", fields: [createdByUserId], references: [id])
+  convertedMember   Member?        @relation(fields: [convertedMemberId], references: [id])
+  followUps         FollowUpTask[]
+  activities        LeadActivity[]
+
+  @@index([tenantId, branchId, stage, archivedAt])
+  @@index([tenantId, assignedToUserId, stage])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, phone])
+  @@index([tenantId, email])
+}
+
+model FollowUpTask {
+  id               String         @id @default(cuid())
+  tenantId         String
+  leadId           String
+  assignedToUserId String
+  createdByUserId  String
+  purpose          String
+  dueAt            DateTime
+  status           FollowUpStatus @default(OPEN)
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  outcome          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead             Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedTo       User           @relation("FollowUpAssignee", fields: [assignedToUserId], references: [id])
+  createdBy        User           @relation("FollowUpCreator", fields: [createdByUserId], references: [id])
+
+  @@index([tenantId, assignedToUserId, status, dueAt])
+  @@index([tenantId, leadId, dueAt])
+}
+
+model LeadActivity {
+  id          String           @id @default(cuid())
+  tenantId    String
+  leadId      String
+  actorUserId String?
+  type        LeadActivityType
+  summary     String
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead        Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor       User?            @relation("LeadActivityActor", fields: [actorUserId], references: [id])
+
+  @@index([tenantId, leadId, createdAt])
+}
+
+model NotificationTemplate {
+  id                   String              @id @default(cuid())
+  tenantId             String
+  key                  String
+  name                 String
+  kind                 NotificationKind
+  channel              NotificationChannel
+  body                 String
+  providerTemplateName String?
+  locale               String              @default("en")
+  isActive             Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  tenant               Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  events               NotificationEvent[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId, kind, channel, isActive])
+}
+
+model NotificationPolicy {
+  id                  String   @id @default(cuid())
+  tenantId            String   @unique
+  renewalReminderDays Int[]    @default([7, 3, 1])
+  paymentReminderDays Int[]    @default([0, 3])
+  renewalEnabled      Boolean  @default(true)
+  paymentEnabled      Boolean  @default(true)
+  leadFollowUpEnabled Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model NotificationEvent {
+  id                String                        @id @default(cuid())
+  tenantId          String
+  branchId          String?
+  templateId        String?
+  createdByUserId   String?
+  kind              NotificationKind
+  channel           NotificationChannel
+  recipientName     String
+  recipientAddress  String
+  subjectType       String
+  subjectId         String
+  renderedBody      String
+  payload           Json?
+  scheduledAt       DateTime
+  status            NotificationStatus            @default(SCHEDULED)
+  attemptCount      Int                           @default(0)
+  maxAttempts       Int                           @default(3)
+  nextAttemptAt     DateTime?
+  lastAttemptAt     DateTime?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  failedAt          DateTime?
+  provider          String?
+  providerMessageId String?
+  errorCode         String?
+  errorMessage      String?
+  idempotencyKey    String
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime                      @updatedAt
+  tenant            Tenant                        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template          NotificationTemplate?         @relation(fields: [templateId], references: [id])
+  createdBy         User?                         @relation("NotificationCreator", fields: [createdByUserId], references: [id])
+  attempts          NotificationDeliveryAttempt[]
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, status, scheduledAt])
+  @@index([tenantId, branchId, createdAt])
+  @@index([tenantId, subjectType, subjectId])
+}
+
+model NotificationDeliveryAttempt {
+  id                String                @id @default(cuid())
+  tenantId          String
+  eventId           String
+  attemptNumber     Int
+  status            DeliveryAttemptStatus
+  provider          String
+  providerMessageId String?
+  errorCode         String?
+  errorMessage      String?
+  startedAt         DateTime              @default(now())
+  completedAt       DateTime?
+  event             NotificationEvent     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, attemptNumber])
+  @@index([tenantId, eventId, startedAt])
+}
+
+model MemberNote {
+  id           String   @id @default(cuid())
+  tenantId     String
+  memberId     String
+  authorUserId String
+  body         String
+  createdAt    DateTime @default(now())
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  author       User     @relation("MemberNoteAuthor", fields: [authorUserId], references: [id])
+
+  @@index([tenantId, memberId, createdAt])
+}
+
+model MembershipPlan {
+  id           String       @id @default(cuid())
+  tenantId     String
+  name         String
+  description  String?
+  durationDays Int
+  priceMinor   Int
+  taxRateBps   Int          @default(0)
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  memberships  Membership[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Membership {
+  id                 String             @id @default(cuid())
+  tenantId           String
+  memberId           String
+  planId             String
+  startsAt           DateTime
+  endsAt             DateTime
+  status             MembershipStatus   @default(PENDING)
+  frozenAt           DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  member             Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  plan               MembershipPlan     @relation(fields: [planId], references: [id])
+  invoice            Invoice?
+  freezes            MembershipFreeze[]
+  checkIns           CheckIn[]
+
+  @@index([tenantId, status, endsAt])
+  @@index([tenantId, memberId])
+}
+
+model MembershipFreeze {
+  id           String     @id @default(cuid())
+  tenantId     String
+  membershipId String
+  startedAt    DateTime
+  endedAt      DateTime?
+  reason       String?
+  createdAt    DateTime   @default(now())
+  membership   Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, membershipId, startedAt])
+}
+
+model Invoice {
+  id             String            @id @default(cuid())
+  tenantId       String
+  branchId       String
+  memberId       String
+  membershipId   String?           @unique
+  issuedByUserId String?
+  invoiceNumber  String
+  issuedAt       DateTime          @default(now())
+  subtotalMinor  Int
+  discountMinor  Int               @default(0)
+  taxMinor       Int
+  totalMinor     Int
+  paidMinor      Int               @default(0)
+  dueAt          DateTime
+  status         InvoiceStatus     @default(OPEN)
+  voidedAt       DateTime?
+  voidReason     String?
+  voidedByUserId String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch         Branch            @relation(fields: [branchId], references: [id])
+  member         Member            @relation(fields: [memberId], references: [id])
+  membership     Membership?       @relation(fields: [membershipId], references: [id])
+  issuedBy       User?             @relation("InvoiceIssuer", fields: [issuedByUserId], references: [id])
+  voidedBy       User?             @relation("InvoiceVoidUser", fields: [voidedByUserId], references: [id])
+  lineItems      InvoiceLineItem[]
+  payments       Payment[]
+
+  @@unique([tenantId, invoiceNumber])
+  @@index([tenantId, status, dueAt])
+  @@index([tenantId, branchId, issuedAt])
+}
+
+model InvoiceLineItem {
+  id             String   @id @default(cuid())
+  tenantId       String
+  invoiceId      String
+  description    String
+  quantity       Int      @default(1)
+  unitPriceMinor Int
+  subtotalMinor  Int
+  taxRateBps     Int      @default(0)
+  taxMinor       Int
+  totalMinor     Int
+  createdAt      DateTime @default(now())
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, invoiceId])
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  tenantId         String
+  invoiceId        String
+  recordedByUserId String?
+  reversedByUserId String?
+  receiptNumber    String?
+  amountMinor      Int
+  method           PaymentMethod
+  status           PaymentStatus @default(CAPTURED)
+  provider         String?
+  providerRef      String?
+  note             String?
+  idempotencyKey   String
+  paidAt           DateTime      @default(now())
+  reversedAt       DateTime?
+  reversalReason   String?
+  createdAt        DateTime      @default(now())
+  tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice          Invoice       @relation(fields: [invoiceId], references: [id])
+  recordedBy       User?         @relation("PaymentRecorder", fields: [recordedByUserId], references: [id])
+  reversedBy       User?         @relation("PaymentReverser", fields: [reversedByUserId], references: [id])
+
+  @@unique([tenantId, idempotencyKey])
+  @@unique([tenantId, receiptNumber])
+  @@index([tenantId, paidAt])
+  @@index([tenantId, invoiceId, status])
+}
+
+model CheckIn {
+  id                String              @id @default(cuid())
+  tenantId          String
+  branchId          String
+  memberId          String
+  membershipId      String?
+  checkedInByUserId String?
+  qrCredentialId    String?
+  source            CheckInSource       @default(FRONT_DESK)
+  checkedInAt       DateTime            @default(now())
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch            Branch              @relation(fields: [branchId], references: [id])
+  member            Member              @relation(fields: [memberId], references: [id])
+  membership        Membership?         @relation(fields: [membershipId], references: [id])
+  checkedInBy       User?               @relation("CheckInRecorder", fields: [checkedInByUserId], references: [id])
+  qrCredential      MemberQrCredential? @relation(fields: [qrCredentialId], references: [id])
+
+  @@index([tenantId, checkedInAt])
+  @@index([tenantId, memberId, checkedInAt])
+  @@index([tenantId, branchId, checkedInAt])
+  @@index([membershipId])
+}
+
+model MemberQrCredential {
+  id             String    @id @default(cuid())
+  tenantId       String
+  memberId       String    @unique
+  tokenHash      String    @unique
+  issuedByUserId String
+  issuedAt       DateTime  @default(now())
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  member         Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  issuedBy       User      @relation("QrCredentialIssuer", fields: [issuedByUserId], references: [id])
+  checkIns       CheckIn[]
+
+  @@index([tenantId, revokedAt])
+}
+
+model AuditEvent {
+  id          String      @id @default(cuid())
+  tenantId    String
+  actorUserId String?
+  action      AuditAction
+  entityType  String
+  entityId    String
+  metadata    Json?
+  ipAddress   String?
+  createdAt   DateTime    @default(now())
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor       User?       @relation(fields: [actorUserId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, entityType, entityId])
+}
