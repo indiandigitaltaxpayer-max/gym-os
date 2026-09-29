@@ -51,6 +51,10 @@ Cloudflare R2 is the planned object store for documents and generated files.
 The application will use its S3-compatible API, preserving a future migration
 path to AWS S3.
 
+Initial production observability will use Sentry for frontend and API error
+tracking, paired with Render health checks. Uptime and on-call tooling will be
+added separately before public production launch.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
