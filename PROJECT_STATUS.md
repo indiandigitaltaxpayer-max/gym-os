@@ -21,22 +21,22 @@ accepted and has passed engineering verification. Real WhatsApp delivery
 remains deferred to Step 10B because provider
 credentials and approved Meta templates are not yet available.
 **Step 11A: Core Reports** is accepted and has passed engineering verification.
-**Step 12A: Platform Admin and Tenant Provisioning** is implemented and has
-passed engineering verification. Product-owner acceptance is pending.
+**Step 12A: Platform Admin and Tenant Provisioning** is accepted and has
+passed engineering verification.
 
 ### Completion Snapshot
 
 | Area | Status | Completion | Acceptance |
 | --- | --- | ---: | --- |
 | Phase 0: Product and architecture foundation | In progress | 80% | Partial |
-| Phase 1: SaaS and tenant foundation | In progress | 95% | Step 12A implemented; pending user verification |
+| Phase 1: SaaS and tenant foundation | Accepted | 100% | Step 12A accepted |
 | Phase 2: Member and membership core | Accepted | 100% | Steps 5 and 6 accepted |
 | Phase 3: Billing and payments | Accepted | 100% | Step 7 accepted |
 | Phase 4: Attendance and access | Accepted | 100% | Step 8 accepted |
 | Phase 5: Leads and CRM | Accepted | 100% | Step 9 accepted |
 | Phase 6: Notifications and WhatsApp | In progress | 70% | Step 10A accepted; Step 10B external provider integration remains |
 | Phase 7: Reports and analytics | Accepted | 100% | Step 11A accepted for the MVP; advanced reporting remains deferred |
-| Phase 8: Production readiness | In progress | 35% | Step 12A implemented; Step 12B remains |
+| Phase 8: Production readiness | In progress | 40% | Step 12A accepted; Step 12B remains |
 | Phases 9-10 | Not started | 0% | Not ready |
 
 Completion percentages are planning estimates, not effort or billing measures.
@@ -47,7 +47,7 @@ Completion percentages are planning estimates, not effort or billing measures.
 | ---: | --- | --- | --- |
 | 1 | Initialize project | In progress | Monorepo, web, API, PostgreSQL, migrations, seed, and local environment work. Redis and CI remain outstanding. |
 | 2 | Authentication foundation | Implemented | Login, logout, current user, short-lived access token, rotating refresh session, Argon2 password hashes, and guards are complete. |
-| 3 | Tenant foundation | Implemented | Tenant, branch, user-role mapping, tenant request context, branch restrictions, isolation, and audited Platform Admin provisioning are implemented. Product-owner verification is pending. |
+| 3 | Tenant foundation | Accepted | Tenant, branch, user-role mapping, tenant request context, branch restrictions, isolation, and audited Platform Admin provisioning are accepted. |
 | 4 | RBAC | Implemented | Owner, Manager, Front desk, Trainer, and Accountant roles; permission guards; UI permission metadata; invitation role assignment; and audit events are implemented. |
 | 5 | Members | Accepted | Product owner accepted the workflow. Final M/F gender, height, and weight additions passed migration, validation, build, and test verification. |
 | 6 | Memberships | Accepted | Plan administration, assignment, renewal, status refresh, freeze/resume, cancellation, expiry views, audit, tests, and visual QA passed. Product owner accepted the workflow. |
@@ -56,7 +56,7 @@ Completion percentages are planning estimates, not effort or billing measures.
 | 9 | Leads and follow-ups | Accepted | Pipeline, follow-ups, timeline, conversion, dashboard tasks, metrics, tests, responsive QA, and product-owner review complete. |
 | 10 | Notifications | In progress | Step 10A accepted: templates, durable PostgreSQL queue, optional Redis transport, simulated provider, reminders, retries, and delivery history. Step 10B real WhatsApp delivery is deferred. |
 | 11 | Reports | Accepted | Product owner accepted role-aware operational and financial reports, branch/date filters, charts, tables, and CSV exports. |
-| 12 | Production readiness | In progress | Step 12A Platform Admin and Tenant Provisioning is implemented and engineering-verified; product-owner acceptance is pending. Deployment, backups, monitoring, security review, and operational runbooks follow in Step 12B. |
+| 12 | Production readiness | In progress | Step 12A Platform Admin and Tenant Provisioning is accepted. Deployment, backups, monitoring, security review, and operational runbooks follow in Step 12B. |
 
 Status meanings:
 
@@ -461,6 +461,7 @@ and [webhook subscriptions](https://www.postman.com/meta/whatsapp-business-platf
 | 2026-09-29 | Verification | Step 12A passed all 15 migrations, 14 test suites/46 tests, workspace type checks, API and web production builds, and a live tenant lifecycle covering provisioning, Owner invitation acceptance, suspension, session invalidation, reactivation, and archival. Guarded cleanup removed the temporary tenant. |
 | 2026-09-29 | Verification | Platform Admin sign-in, tenant directory, Pulse Fitness details, create-gym form, mobile navigation, audit history, responsive containment, and browser console were verified at desktop and 390 x 844 mobile sizes. The temporary browser-QA administrator is removed after verification. |
 | 2026-09-29 | Incident | Starting the review services through pnpm triggered a local store-mismatch reinstall prompt. The prompt was declined and the already-built API and web servers were launched directly through the installed Node entry points; no dependency files were changed. |
+| 2026-09-29 | Acceptance | Product owner manually accepted Step 12A Platform Admin and Tenant Provisioning. Step 12B Production Readiness planning may proceed. |
 
 ## Completed Increment: Step 5 - Member Management
 
@@ -650,7 +651,7 @@ Acceptance checklist:
 
 ## Implemented Increment: Step 8 - Attendance
 
-**Status:** Engineering complete; pending product-owner acceptance.
+**Status:** Accepted by product owner on 2026-09-29.
 
 Existing foundation to retain:
 
@@ -925,24 +926,24 @@ Implemented deliverables:
 
 ### Step 12A User Acceptance Checklist
 
-Status: **Pending product-owner verification**
+Status: **Accepted by product owner on 2026-09-29**
 
-- [ ] Open `/platform` and sign in with the locally configured Platform Admin.
-- [ ] Confirm Pulse Fitness appears with the expected status, branch, staff,
+- [x] Open `/platform` and sign in with the locally configured Platform Admin.
+- [x] Confirm Pulse Fitness appears with the expected status, branch, staff,
   and member counts.
-- [ ] Open Pulse Fitness and confirm only tenant onboarding metadata is shown;
+- [x] Open Pulse Fitness and confirm only tenant onboarding metadata is shown;
   operational member and finance details are not exposed.
-- [ ] Create a temporary gym with a unique workspace slug and first branch.
-- [ ] Copy the first-Owner invitation, open it while signed out or in a private
+- [x] Create a temporary gym with a unique workspace slug and first branch.
+- [x] Copy the first-Owner invitation, open it while signed out or in a private
   window, set the Owner password, and sign in to the new workspace.
-- [ ] Suspend the temporary gym and confirm its active session and new sign-ins
+- [x] Suspend the temporary gym and confirm its active session and new sign-ins
   are rejected.
-- [ ] Reactivate the gym and confirm its Owner can sign in again.
-- [ ] Archive the temporary gym and confirm it remains visible as historical
+- [x] Reactivate the gym and confirm its Owner can sign in again.
+- [x] Archive the temporary gym and confirm it remains visible as historical
   customer metadata but cannot be used operationally.
-- [ ] Review Platform audit history and confirm the provisioning and lifecycle
+- [x] Review Platform audit history and confirm the provisioning and lifecycle
   actions are present.
-- [ ] Repeat the tenant directory and create-gym form review in a narrow browser
+- [x] Repeat the tenant directory and create-gym form review in a narrow browser
   window.
 
 Explicitly deferred to **Step 12B**: production hosting and HTTPS, managed

@@ -359,8 +359,8 @@ secured tenant.
 
 ## 11. Recommended Next Product Increment
 
-Step 12A Platform Admin and Tenant Provisioning is implemented and awaiting
-product-owner acceptance. The next increment is **Step 12B: Production
+Step 12A Platform Admin and Tenant Provisioning is accepted. The next increment
+is **Step 12B: Production
 Readiness**, covering deployment, HTTPS, managed secrets, backups and restore
 tests, CI/CD, monitoring, rate limiting, security review, runbooks, and an
 initial validated CSV import workflow. Do not onboard a real paying gym until
