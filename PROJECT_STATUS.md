@@ -23,6 +23,8 @@ credentials and approved Meta templates are not yet available.
 **Step 11A: Core Reports** is accepted and has passed engineering verification.
 **Step 12A: Platform Admin and Tenant Provisioning** is accepted and has
 passed engineering verification.
+**Step 12B.1: Render Staging Configuration** is implemented and awaiting the
+first manual staging deployment review in Render.
 
 ### Completion Snapshot
 
@@ -36,7 +38,7 @@ passed engineering verification.
 | Phase 5: Leads and CRM | Accepted | 100% | Step 9 accepted |
 | Phase 6: Notifications and WhatsApp | In progress | 70% | Step 10A accepted; Step 10B external provider integration remains |
 | Phase 7: Reports and analytics | Accepted | 100% | Step 11A accepted for the MVP; advanced reporting remains deferred |
-| Phase 8: Production readiness | In progress | 40% | Step 12A accepted; Step 12B remains |
+| Phase 8: Production readiness | In progress | 45% | Step 12A accepted; Step 12B.1 awaits staging deployment review |
 | Phases 9-10 | Not started | 0% | Not ready |
 
 Completion percentages are planning estimates, not effort or billing measures.
@@ -56,7 +58,7 @@ Completion percentages are planning estimates, not effort or billing measures.
 | 9 | Leads and follow-ups | Accepted | Pipeline, follow-ups, timeline, conversion, dashboard tasks, metrics, tests, responsive QA, and product-owner review complete. |
 | 10 | Notifications | In progress | Step 10A accepted: templates, durable PostgreSQL queue, optional Redis transport, simulated provider, reminders, retries, and delivery history. Step 10B real WhatsApp delivery is deferred. |
 | 11 | Reports | Accepted | Product owner accepted role-aware operational and financial reports, branch/date filters, charts, tables, and CSV exports. |
-| 12 | Production readiness | In progress | Step 12A Platform Admin and Tenant Provisioning is accepted. Deployment, backups, monitoring, security review, and operational runbooks follow in Step 12B. |
+| 12 | Production readiness | In progress | Step 12A is accepted. Step 12B.1 Render staging configuration is implemented and awaits deployment review; production hosting, backups, monitoring, security review, and runbooks follow. |
 
 Status meanings:
 
@@ -462,6 +464,10 @@ and [webhook subscriptions](https://www.postman.com/meta/whatsapp-business-platf
 | 2026-09-29 | Verification | Platform Admin sign-in, tenant directory, Pulse Fitness details, create-gym form, mobile navigation, audit history, responsive containment, and browser console were verified at desktop and 390 x 844 mobile sizes. The temporary browser-QA administrator is removed after verification. |
 | 2026-09-29 | Incident | Starting the review services through pnpm triggered a local store-mismatch reinstall prompt. The prompt was declined and the already-built API and web servers were launched directly through the installed Node entry points; no dependency files were changed. |
 | 2026-09-29 | Acceptance | Product owner manually accepted Step 12A Platform Admin and Tenant Provisioning. Step 12B Production Readiness planning may proceed. |
+| 2026-09-29 | Approval | Product owner selected Render as the deployment provider, connected GitHub, linked the `gym-os` repository, and approved Step 12B.1 Render deployment configuration. No Render services have been created. |
+| 2026-09-29 | Decision | Step 12B uses a staging-first Render Blueprint in the Singapore region: distinct web/API services and one managed Postgres database. Auto-deploy is disabled pending manual review. |
+| 2026-09-29 | Decision | Render's free Postgres plan is permitted for the short staging proof only. It expires after 30 days and has no backups; it must never hold real customer data or be treated as production infrastructure. |
+| 2026-09-29 | Verification | Step 12B.1 database and API TypeScript checks passed. The Blueprint has not yet been applied in Render, so no service, database, or production deployment has been created. |
 
 ## Completed Increment: Step 5 - Member Management
 
@@ -950,6 +956,37 @@ Explicitly deferred to **Step 12B**: production hosting and HTTPS, managed
 secrets, backups and restore drills, CI/CD, monitoring and alerting, rate
 limiting, security review, incident/support runbooks, CSV import tooling,
 customer SaaS billing, feature entitlements, and controlled support access.
+
+## In Progress: Step 12B.1 - Render Staging Configuration
+
+**Status:** Implemented; pending product-owner deployment review.
+
+Implemented deliverables:
+
+- `render.yaml` Blueprint for a Singapore staging environment with distinct
+  public API and web services plus a managed PostgreSQL database.
+- Render-compatible API binding using `PORT`, while preserving `API_PORT` for
+  local Windows development.
+- API health check at `/v1/health` and an idempotent Prisma migration command
+  before the staging API starts.
+- A minimal first-Platform-Administrator bootstrap that runs after migrations
+  without creating demo tenant data or requiring a development gym Owner.
+- Explicit frontend-to-API URL and API CORS origin configuration.
+- Generated tenant and Platform Admin JWT secrets; Platform Admin credentials
+  remain dashboard-only values and are not stored in Git.
+- Disabled automatic deploys so the product owner reviews each staging release.
+- Repository instructions for creating and validating the staging Blueprint.
+
+### Step 12B.1 Review Checklist
+
+- [ ] Create the staging Blueprint in Render from `render.yaml`.
+- [ ] Confirm all resources are located in Singapore.
+- [ ] Provide only the requested Platform Admin bootstrap values in Render.
+- [ ] Confirm the API health endpoint returns `{"status":"ok"}`.
+- [ ] Open the web URL and complete a Platform Admin and Pulse Fitness sign-in.
+- [ ] Confirm no local `.env` file or secret appears in the Render Blueprint,
+  deploy logs, or repository.
+- [ ] Confirm the free database is labelled staging-only and has no customer data.
 
 ## Status Update Rules
 

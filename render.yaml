@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: gym-growth-os-api-staging
+    runtime: node
+    region: singapore
+    plan: free
+    autoDeploy: false
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @gym/database exec prisma generate && pnpm --filter @gym/database build && pnpm --filter @gym/api build
+    # Free services do not support Render pre-deploy commands. For staging,
+    # idempotent migrations and first Platform Admin bootstrap run before the
+    # single API process. This does not seed a demo tenant or gym Owner.
+    startCommand: pnpm --filter @gym/database exec prisma migrate deploy && pnpm --filter @gym/database bootstrap:platform && pnpm --filter @gym/api start
+    healthCheckPath: /v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gym-growth-os-db-staging
+          property: connectionString
+      - key: WEB_ORIGIN
+        value: https://gym-growth-os-web-staging.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PLATFORM_JWT_SECRET
+        generateValue: true
+      - key: PLATFORM_ADMIN_EMAIL
+        sync: false
+      - key: PLATFORM_ADMIN_PASSWORD
+        sync: false
+      - key: PLATFORM_ADMIN_NAME
+        value: Platform Administrator
+      - key: NOTIFICATION_PROVIDER
+        value: simulated
+
+  - type: web
+    name: gym-growth-os-web-staging
+    runtime: node
+    region: singapore
+    plan: free
+    autoDeploy: false
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @gym/database exec prisma generate && pnpm --filter @gym/web build
+    startCommand: pnpm --filter @gym/web start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://gym-growth-os-api-staging.onrender.com/v1
+
+databases:
+  - name: gym-growth-os-db-staging
+    databaseName: gym_growth_os_staging
+    user: gym_os
+    region: singapore
+    plan: free

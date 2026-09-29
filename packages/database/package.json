@@ -9,6 +9,7 @@
     "postinstall": "prisma generate",
     "migrate": "prisma migrate dev --name init",
     "seed": "tsx prisma/seed.ts",
+    "bootstrap:platform": "tsx prisma/bootstrap-platform.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
