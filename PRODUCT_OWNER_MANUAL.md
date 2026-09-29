@@ -65,6 +65,11 @@ First-year infrastructure planning assumes five gyms, up to three branches and
 documents or receipts in total. The initial infrastructure budget target is
 USD 75-150 per month, excluding WhatsApp, payment, and email usage charges.
 
+The product uses three isolated environments: Local for development, Staging
+for controlled testing with test data only, and Production for paid backed-up
+infrastructure and real customer data. Credentials and provider accounts must
+not be shared between them.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
