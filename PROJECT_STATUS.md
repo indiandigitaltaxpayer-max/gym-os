@@ -468,6 +468,7 @@ and [webhook subscriptions](https://www.postman.com/meta/whatsapp-business-platf
 | 2026-09-29 | Decision | Step 12B uses a staging-first Render Blueprint in the Singapore region: distinct web/API services and one managed Postgres database. Auto-deploy is disabled pending manual review. |
 | 2026-09-29 | Decision | Render's free Postgres plan is permitted for the short staging proof only. It expires after 30 days and has no backups; it must never hold real customer data or be treated as production infrastructure. |
 | 2026-09-29 | Decision | The planned production domain is `gymgrowthos.com`. Future production service addresses will use `app.gymgrowthos.com` and `api.gymgrowthos.com`; temporary Render `onrender.com` URLs remain the staging addresses until deployment is intentionally started. Domain registration and DNS configuration are deferred. |
+| 2026-09-29 | Decision | The planned production data region is Singapore. Before onboarding real gym data, the production environment must use paid Render PostgreSQL with backups enabled and a documented restore test; the temporary free staging database is not eligible for production use. |
 | 2026-09-29 | Verification | Step 12B.1 database and API TypeScript checks passed. The Blueprint has not yet been applied in Render, so no service, database, or production deployment has been created. |
 
 ## Completed Increment: Step 5 - Member Management

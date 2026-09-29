@@ -44,6 +44,9 @@ The planned production product domain is `gymgrowthos.com`. It is a naming
 decision only at this stage; domain registration, DNS, and HTTPS configuration
 are deferred until the production deployment milestone.
 
+The planned production data region is Singapore. Real gym data will only be
+hosted in paid, backed-up PostgreSQL infrastructure after a restore test passes.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
