@@ -70,6 +70,12 @@ for controlled testing with test data only, and Production for paid backed-up
 infrastructure and real customer data. Credentials and provider accounts must
 not be shared between them.
 
+Release flow uses local `feature/<name>` branches, a shared `staging` branch
+for manual staging deployments, and `release/<version>` branches for production
+deployments. Each deployed release is tagged and then merged into `main`, which
+represents the latest production state. Automatic production deployment remains
+disabled during the initial launch period.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
