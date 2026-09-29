@@ -40,6 +40,10 @@ The Product Owner should be able to:
 The dedicated Platform Admin portal is available at `/platform`. It is a
 separate security realm from every gym workspace.
 
+The planned production product domain is `gymgrowthos.com`. It is a naming
+decision only at this stage; domain registration, DNS, and HTTPS configuration
+are deferred until the production deployment milestone.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
