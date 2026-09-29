@@ -55,6 +55,11 @@ Initial production observability will use Sentry for frontend and API error
 tracking, paired with Render health checks. Uptime and on-call tooling will be
 added separately before public production launch.
 
+Resend is the planned transactional-email provider for Owner and staff
+invitations, receipts, and operational notices. Its sender domain, templates,
+and API credentials will be configured only during the production-email
+increment.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
