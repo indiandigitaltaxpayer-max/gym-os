@@ -469,6 +469,7 @@ and [webhook subscriptions](https://www.postman.com/meta/whatsapp-business-platf
 | 2026-09-29 | Decision | Render's free Postgres plan is permitted for the short staging proof only. It expires after 30 days and has no backups; it must never hold real customer data or be treated as production infrastructure. |
 | 2026-09-29 | Decision | The planned production domain is `gymgrowthos.com`. Future production service addresses will use `app.gymgrowthos.com` and `api.gymgrowthos.com`; temporary Render `onrender.com` URLs remain the staging addresses until deployment is intentionally started. Domain registration and DNS configuration are deferred. |
 | 2026-09-29 | Decision | The planned production data region is Singapore. Before onboarding real gym data, the production environment must use paid Render PostgreSQL with backups enabled and a documented restore test; the temporary free staging database is not eligible for production use. |
+| 2026-09-29 | Decision | Cloudflare R2 is the planned object-storage provider for documents, exports, and generated receipts. Its S3-compatible API is the required application boundary so the storage provider can later be migrated to AWS S3 without changing the domain model or application-facing storage interface. |
 | 2026-09-29 | Verification | Step 12B.1 database and API TypeScript checks passed. The Blueprint has not yet been applied in Render, so no service, database, or production deployment has been created. |
 
 ## Completed Increment: Step 5 - Member Management

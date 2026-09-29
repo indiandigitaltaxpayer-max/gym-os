@@ -47,6 +47,10 @@ are deferred until the production deployment milestone.
 The planned production data region is Singapore. Real gym data will only be
 hosted in paid, backed-up PostgreSQL infrastructure after a restore test passes.
 
+Cloudflare R2 is the planned object store for documents and generated files.
+The application will use its S3-compatible API, preserving a future migration
+path to AWS S3.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
