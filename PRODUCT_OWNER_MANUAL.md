@@ -60,6 +60,11 @@ invitations, receipts, and operational notices. Its sender domain, templates,
 and API credentials will be configured only during the production-email
 increment.
 
+First-year infrastructure planning assumes five gyms, up to three branches and
+1,000 members per gym, up to 20 staff accounts per gym, and up to 100,000
+documents or receipts in total. The initial infrastructure budget target is
+USD 75-150 per month, excluding WhatsApp, payment, and email usage charges.
+
 ### Gym Owner
 
 A Gym Owner is a user inside one gym customer account. In the application this
