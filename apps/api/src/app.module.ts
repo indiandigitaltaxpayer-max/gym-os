@@ -15,13 +15,16 @@ import { AttendanceModule } from "./attendance/attendance.module";
 import { LeadsModule } from "./leads/leads.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { ReportsModule } from "./reports/reports.module";
+import { PlatformModule } from "./platform/platform.module";
+import { PlatformAuthGuard } from "./platform/platform-auth.guard";
 
 @Module({
-  imports: [AuthModule, StaffModule, SetupModule, MembersModule, BillingModule, MembershipsModule, AttendanceModule, LeadsModule, NotificationsModule, ReportsModule, OperationsModule],
+  imports: [AuthModule, PlatformModule, StaffModule, SetupModule, MembersModule, BillingModule, MembershipsModule, AttendanceModule, LeadsModule, NotificationsModule, ReportsModule, OperationsModule],
   controllers: [AppController],
   providers: [
     PrismaService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PlatformAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
 })

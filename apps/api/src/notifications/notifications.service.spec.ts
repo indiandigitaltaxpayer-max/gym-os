@@ -13,7 +13,7 @@ function deliveryPrisma(value = event) {
     notificationEvent: {
       findMany: jest.fn().mockResolvedValue([value]),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-      findUnique: jest.fn().mockResolvedValue({ ...value, attemptCount: 1 }),
+      findUnique: jest.fn().mockResolvedValue({ ...value, attemptCount: 1, tenant: { status: "ACTIVE" } }),
       update: jest.fn().mockImplementation(({ data }) => { transactionUpdates.push(data); return Promise.resolve({ ...value, ...data }); }),
     },
     notificationDeliveryAttempt: {

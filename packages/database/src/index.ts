@@ -17,6 +17,8 @@ export {
   NotificationStatus,
   DeliveryAttemptStatus,
   UserStatus,
+  PlatformAdminStatus,
+  PlatformAuditAction,
   AuditAction,
   TenantStatus,
 } from "@prisma/client";
@@ -33,6 +35,9 @@ export type {
   InvoiceLineItem,
   CheckIn,
   AuthSession,
+  PlatformAdmin,
+  PlatformAuthSession,
+  PlatformAuditEvent,
   StaffInvitation,
   MemberNote,
   MemberQrCredential,

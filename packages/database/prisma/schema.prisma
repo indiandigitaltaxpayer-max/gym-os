@@ -20,6 +20,22 @@ enum UserStatus {
   DISABLED
 }
 
+enum PlatformAdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum PlatformAuditAction {
+  LOGIN
+  LOGOUT
+  CREATE_TENANT
+  UPDATE_TENANT
+  SUSPEND_TENANT
+  REACTIVATE_TENANT
+  ARCHIVE_TENANT
+  INVITE_OWNER
+}
+
 enum MemberStatus {
   LEAD
   TRIAL
@@ -189,6 +205,7 @@ model Tenant {
   status                TenantStatus           @default(TRIAL)
   currency              String                 @default("INR")
   timezone              String                 @default("Asia/Kolkata")
+  subscriptionPlan      String                 @default("PILOT")
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   branches              Branch[]
@@ -214,6 +231,57 @@ model Tenant {
   notificationTemplates NotificationTemplate[]
   notificationEvents    NotificationEvent[]
   notificationPolicy    NotificationPolicy?
+  platformAuditEvents   PlatformAuditEvent[]
+
+  @@index([status])
+}
+
+model PlatformAdmin {
+  id           String                @id @default(cuid())
+  email        String                @unique
+  name         String
+  passwordHash String
+  status       PlatformAdminStatus   @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  sessions     PlatformAuthSession[]
+  auditEvents  PlatformAuditEvent[]
+  invitations  StaffInvitation[]     @relation("PlatformInvitationSender")
+}
+
+model PlatformAuthSession {
+  id              String        @id @default(cuid())
+  platformAdminId String
+  tokenHash       String
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  lastUsedAt      DateTime      @default(now())
+  ipAddress       String?
+  userAgent       String?
+  createdAt       DateTime      @default(now())
+  platformAdmin   PlatformAdmin @relation(fields: [platformAdminId], references: [id], onDelete: Cascade)
+
+  @@index([platformAdminId])
+  @@index([expiresAt])
+}
+
+model PlatformAuditEvent {
+  id              String              @id @default(cuid())
+  platformAdminId String?
+  tenantId        String?
+  action          PlatformAuditAction
+  entityType      String
+  entityId        String
+  metadata        Json?
+  ipAddress       String?
+  createdAt       DateTime            @default(now())
+  platformAdmin   PlatformAdmin?      @relation(fields: [platformAdminId], references: [id])
+  tenant          Tenant?             @relation(fields: [tenantId], references: [id])
+
+  @@index([createdAt])
+  @@index([platformAdminId, createdAt])
+  @@index([tenantId, createdAt])
 }
 
 model Branch {
@@ -301,20 +369,22 @@ model AuthSession {
 }
 
 model StaffInvitation {
-  id          String    @id @default(cuid())
-  tenantId    String
-  email       String
-  name        String
-  roleId      String
-  branchIds   String[]
-  tokenHash   String    @unique
-  expiresAt   DateTime
-  acceptedAt  DateTime?
-  invitedById String
-  createdAt   DateTime  @default(now())
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  role        Role      @relation(fields: [roleId], references: [id])
-  invitedBy   User      @relation("InvitationSender", fields: [invitedById], references: [id])
+  id                       String         @id @default(cuid())
+  tenantId                 String
+  email                    String
+  name                     String
+  roleId                   String
+  branchIds                String[]
+  tokenHash                String         @unique
+  expiresAt                DateTime
+  acceptedAt               DateTime?
+  invitedById              String?
+  invitedByPlatformAdminId String?
+  createdAt                DateTime       @default(now())
+  tenant                   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role                     Role           @relation(fields: [roleId], references: [id])
+  invitedBy                User?          @relation("InvitationSender", fields: [invitedById], references: [id])
+  invitedByPlatformAdmin   PlatformAdmin? @relation("PlatformInvitationSender", fields: [invitedByPlatformAdminId], references: [id])
 
   @@index([tenantId, email])
   @@index([expiresAt])

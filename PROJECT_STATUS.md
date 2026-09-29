@@ -21,20 +21,23 @@ accepted and has passed engineering verification. Real WhatsApp delivery
 remains deferred to Step 10B because provider
 credentials and approved Meta templates are not yet available.
 **Step 11A: Core Reports** is accepted and has passed engineering verification.
+**Step 12A: Platform Admin and Tenant Provisioning** is implemented and has
+passed engineering verification. Product-owner acceptance is pending.
 
 ### Completion Snapshot
 
 | Area | Status | Completion | Acceptance |
 | --- | --- | ---: | --- |
 | Phase 0: Product and architecture foundation | In progress | 80% | Partial |
-| Phase 1: SaaS and tenant foundation | In progress | 85% | Pending user verification |
+| Phase 1: SaaS and tenant foundation | In progress | 95% | Step 12A implemented; pending user verification |
 | Phase 2: Member and membership core | Accepted | 100% | Steps 5 and 6 accepted |
 | Phase 3: Billing and payments | Accepted | 100% | Step 7 accepted |
 | Phase 4: Attendance and access | Accepted | 100% | Step 8 accepted |
 | Phase 5: Leads and CRM | Accepted | 100% | Step 9 accepted |
 | Phase 6: Notifications and WhatsApp | In progress | 70% | Step 10A accepted; Step 10B external provider integration remains |
 | Phase 7: Reports and analytics | Accepted | 100% | Step 11A accepted for the MVP; advanced reporting remains deferred |
-| Phases 8-10 | Not started | 0% | Not ready |
+| Phase 8: Production readiness | In progress | 35% | Step 12A implemented; Step 12B remains |
+| Phases 9-10 | Not started | 0% | Not ready |
 
 Completion percentages are planning estimates, not effort or billing measures.
 
@@ -44,7 +47,7 @@ Completion percentages are planning estimates, not effort or billing measures.
 | ---: | --- | --- | --- |
 | 1 | Initialize project | In progress | Monorepo, web, API, PostgreSQL, migrations, seed, and local environment work. Redis and CI remain outstanding. |
 | 2 | Authentication foundation | Implemented | Login, logout, current user, short-lived access token, rotating refresh session, Argon2 password hashes, and guards are complete. |
-| 3 | Tenant foundation | In progress | Tenant, branch, user-role mapping, tenant request context, branch restrictions, and isolation are implemented. Platform-admin tenant provisioning remains outstanding. |
+| 3 | Tenant foundation | Implemented | Tenant, branch, user-role mapping, tenant request context, branch restrictions, isolation, and audited Platform Admin provisioning are implemented. Product-owner verification is pending. |
 | 4 | RBAC | Implemented | Owner, Manager, Front desk, Trainer, and Accountant roles; permission guards; UI permission metadata; invitation role assignment; and audit events are implemented. |
 | 5 | Members | Accepted | Product owner accepted the workflow. Final M/F gender, height, and weight additions passed migration, validation, build, and test verification. |
 | 6 | Memberships | Accepted | Plan administration, assignment, renewal, status refresh, freeze/resume, cancellation, expiry views, audit, tests, and visual QA passed. Product owner accepted the workflow. |
@@ -53,7 +56,7 @@ Completion percentages are planning estimates, not effort or billing measures.
 | 9 | Leads and follow-ups | Accepted | Pipeline, follow-ups, timeline, conversion, dashboard tasks, metrics, tests, responsive QA, and product-owner review complete. |
 | 10 | Notifications | In progress | Step 10A accepted: templates, durable PostgreSQL queue, optional Redis transport, simulated provider, reminders, retries, and delivery history. Step 10B real WhatsApp delivery is deferred. |
 | 11 | Reports | Accepted | Product owner accepted role-aware operational and financial reports, branch/date filters, charts, tables, and CSV exports. |
-| 12 | Production readiness | Planned | Step 12A Platform Admin and Tenant Provisioning is approved and preflight-verified; implementation has not started. Deployment, backups, monitoring, security review, and operational runbooks follow in Step 12B. |
+| 12 | Production readiness | In progress | Step 12A Platform Admin and Tenant Provisioning is implemented and engineering-verified; product-owner acceptance is pending. Deployment, backups, monitoring, security review, and operational runbooks follow in Step 12B. |
 
 Status meanings:
 
@@ -106,7 +109,7 @@ Status meanings:
 
 ## Verification Record
 
-Last engineering verification: 2026-09-26
+Last engineering verification: 2026-09-29
 
 | Check | Result |
 | --- | --- |
@@ -178,6 +181,16 @@ Last engineering verification: 2026-09-26
 | Clean-tab report switching and browser-console check | Passed; no warnings or errors |
 | API and web production builds after Step 11 | Passed |
 | Browser console errors | None |
+| Step 12A platform-admin and invitation-actor migrations | Passed; all 15 migrations are current |
+| Platform auth, tenant lifecycle, and suspended-invitation tests | Passed; full repository suite is 14 suites and 46 tests |
+| Workspace TypeScript checks after Step 12A | Passed |
+| API and web production builds after Step 12A | Passed |
+| Create tenant, accept Owner invitation, suspend, reactivate, and archive HTTP lifecycle | Passed |
+| Suspended tenant active-session invalidation and login rejection | Passed |
+| Step 12A verification tenant and related records cleanup | Passed |
+| Platform Admin desktop and 390 x 844 mobile visual QA | Passed |
+| Platform Admin mobile page-overflow check | Passed; scroll width remains within viewport |
+| Platform Admin browser-console check | Passed; no warnings or errors |
 
 The temporary staff account created during end-to-end verification was removed.
 
@@ -203,7 +216,8 @@ existing owner session does not take precedence.
 - CI has not been configured yet.
 - Redis is not running locally and is not required by the current synchronous
   feature set. Add it when queues, rate limiting, or notification jobs need it.
-- Platform-admin tenant provisioning is not complete; the demo tenant is seeded.
+- Platform Admin tenant provisioning is implemented; product-owner acceptance
+  and production hardening remain outstanding.
 - Invitation email and WhatsApp delivery are deferred; the one-time link is
   copied manually.
 - Step 10A uses a local simulated delivery provider. Real WhatsApp sends,
@@ -440,6 +454,13 @@ and [webhook subscriptions](https://www.postman.com/meta/whatsapp-business-platf
 | 2026-09-29 | Verification | Step 12A preflight passed all 13 migrations, 12 test suites/40 tests, workspace type checks, API and web production builds, required local environment checks, and live database continuity checks. Pulse Fitness remains active with one branch, two users, and three members. Ports 3000 and 4000 remain closed. |
 | 2026-09-29 | Resolution | The moved workspace initially had no Git metadata. A new `main` repository was initialized and connected to `https://github.com/indiandigitaltaxpayer-max/gym-os.git`; `.env`, dependencies, package stores, build output, and TypeScript caches are excluded from version control. |
 | 2026-09-29 | Planning | Preflight found that `StaffInvitation.invitedById` currently requires a tenant user. Step 12A must add an explicit platform-admin invitation actor path while preserving the existing one-time token and acceptance flow; it must not fabricate a tenant user as the inviter. |
+| 2026-09-29 | Decision | Platform administrators use a separate authentication realm, session table, JWT secret, cookie paths, and fail-closed route marker. They are not tenant users and cannot use Platform Admin endpoints to read operational member or finance records. |
+| 2026-09-29 | Decision | A first-owner invitation records the Platform Administrator as its actor. A database constraint requires exactly one inviter: either a tenant user or a Platform Administrator. |
+| 2026-09-29 | Incident | The first Step 12A migration had already been applied before the invitation-actor exclusivity constraint was finalized. The constraint was added in a second forward-only migration instead of rewriting applied migration history. |
+| 2026-09-29 | Decision | Local seeding may fall back to the development Owner credentials when dedicated Platform Admin variables are absent. Production requires `PLATFORM_ADMIN_EMAIL`, `PLATFORM_ADMIN_PASSWORD`, and `PLATFORM_JWT_SECRET`; no production fallback is allowed. |
+| 2026-09-29 | Verification | Step 12A passed all 15 migrations, 14 test suites/46 tests, workspace type checks, API and web production builds, and a live tenant lifecycle covering provisioning, Owner invitation acceptance, suspension, session invalidation, reactivation, and archival. Guarded cleanup removed the temporary tenant. |
+| 2026-09-29 | Verification | Platform Admin sign-in, tenant directory, Pulse Fitness details, create-gym form, mobile navigation, audit history, responsive containment, and browser console were verified at desktop and 390 x 844 mobile sizes. The temporary browser-QA administrator is removed after verification. |
+| 2026-09-29 | Incident | Starting the review services through pnpm triggered a local store-mismatch reinstall prompt. The prompt was declined and the already-built API and web servers were launched directly through the installed Node entry points; no dependency files were changed. |
 
 ## Completed Increment: Step 5 - Member Management
 
@@ -877,6 +898,57 @@ Implemented deliverables:
 Explicitly deferred: scheduled report delivery, PDF generation, custom report
 builders, saved report presets, cohort and retention analysis, trainer
 productivity, comparative branch benchmarking, and AI-generated narratives.
+
+## Implemented Increment: Step 12A - Platform Admin and Tenant Provisioning
+
+**Status:** Engineering complete; pending product-owner acceptance.
+
+Implemented deliverables:
+
+- Separate Platform Administrator accounts, JWT realm, rotating sessions,
+  HTTP-only cookies, login, logout, and current-admin endpoints.
+- Audited tenant directory with search, status filters, aggregate branch/staff/
+  member counts, tenant details, and responsive desktop/mobile layouts.
+- Transactional gym provisioning that creates the tenant, first branch,
+  standard roles and permissions, and a single-use first-Owner invitation.
+- Tenant lifecycle controls for suspension, reactivation, and archival.
+  Suspension and archival revoke active tenant sessions and cancel queued
+  notifications; inactive tenants cannot accept invitations or sign in.
+- First-Owner invitation reissue while no active Owner exists.
+- Platform audit history for authentication, provisioning, invitation, and
+  lifecycle actions.
+- A strict Platform Admin data boundary: platform endpoints expose onboarding
+  metadata and aggregate counts, not tenant member, payment, attendance, CRM,
+  or report records.
+- Local seed support plus explicit production-only Platform Admin secret
+  requirements in `.env.example`.
+
+### Step 12A User Acceptance Checklist
+
+Status: **Pending product-owner verification**
+
+- [ ] Open `/platform` and sign in with the locally configured Platform Admin.
+- [ ] Confirm Pulse Fitness appears with the expected status, branch, staff,
+  and member counts.
+- [ ] Open Pulse Fitness and confirm only tenant onboarding metadata is shown;
+  operational member and finance details are not exposed.
+- [ ] Create a temporary gym with a unique workspace slug and first branch.
+- [ ] Copy the first-Owner invitation, open it while signed out or in a private
+  window, set the Owner password, and sign in to the new workspace.
+- [ ] Suspend the temporary gym and confirm its active session and new sign-ins
+  are rejected.
+- [ ] Reactivate the gym and confirm its Owner can sign in again.
+- [ ] Archive the temporary gym and confirm it remains visible as historical
+  customer metadata but cannot be used operationally.
+- [ ] Review Platform audit history and confirm the provisioning and lifecycle
+  actions are present.
+- [ ] Repeat the tenant directory and create-gym form review in a narrow browser
+  window.
+
+Explicitly deferred to **Step 12B**: production hosting and HTTPS, managed
+secrets, backups and restore drills, CI/CD, monitoring and alerting, rate
+limiting, security review, incident/support runbooks, CSV import tooling,
+customer SaaS billing, feature entitlements, and controlled support access.
 
 ## Status Update Rules
 

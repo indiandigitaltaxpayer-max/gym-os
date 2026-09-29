@@ -11,6 +11,17 @@ export async function apiFetch(path: string, init: RequestInit = {}, retry = tru
   return response;
 }
 
+export async function platformApiFetch(path: string, init: RequestInit = {}, retry = true): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  const response = await fetch(`${API_URL}/platform${path}`, { ...init, headers, credentials: "include" });
+  if (response.status === 401 && retry && !path.startsWith("/auth/")) {
+    const refreshed = await fetch(`${API_URL}/platform/auth/refresh`, { method: "POST", credentials: "include" });
+    if (refreshed.ok) return platformApiFetch(path, init, false);
+  }
+  return response;
+}
+
 export async function responseMessage(response: Response, fallback: string) {
   try {
     const body = await response.json();
@@ -19,4 +30,3 @@ export async function responseMessage(response: Response, fallback: string) {
     return fallback;
   }
 }
-

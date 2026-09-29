@@ -54,8 +54,8 @@ export function LoginScreen({ invitationToken, onAuthenticated }: Props) {
         <label>Password<input name="password" type="password" required autoComplete="current-password" /></label>
         <button className="primary" disabled={busy}>{busy ? "Signing in..." : "Sign in"}<ArrowRight size={17} /></button>
       </form>}
+      {!invitationToken && <a className="auth-back" href="/platform">Platform administration</a>}
     </section>
     <aside className="auth-aside"><div><span>Secure operations</span><strong>One workspace.<br />Every shift.</strong><p>Role-aware access keeps the right tools in the right hands.</p></div></aside>
   </main>;
 }
-

@@ -92,10 +92,13 @@ export class AuthService {
   async acceptInvitation(dto: AcceptInvitationDto, metadata: RequestMetadata) {
     const invitation = await this.prisma.staffInvitation.findUnique({
       where: { tokenHash: this.tokenHash(dto.token) },
-      include: { role: true },
+      include: { role: true, tenant: true },
     });
     if (!invitation || invitation.acceptedAt || invitation.expiresAt <= new Date()) {
       throw new BadRequestException("Invitation is invalid or has expired");
+    }
+    if (invitation.tenant.status !== TenantStatus.ACTIVE && invitation.tenant.status !== TenantStatus.TRIAL) {
+      throw new BadRequestException("This gym workspace is not active");
     }
     const existing = await this.prisma.user.findUnique({
       where: { tenantId_email: { tenantId: invitation.tenantId, email: invitation.email } },

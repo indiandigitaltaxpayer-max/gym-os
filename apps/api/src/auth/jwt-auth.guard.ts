@@ -6,6 +6,7 @@ import type { Request } from "express";
 import { PrismaService } from "../common/prisma.service";
 import { IS_PUBLIC } from "../common/public.decorator";
 import type { AuthPrincipal } from "./auth.types";
+import { IS_PLATFORM_ROUTE } from "../platform/platform-route.decorator";
 
 type AccessPayload = { sub: string; sid: string; kind: "access" };
 export type AuthenticatedRequest = Request & { user: AuthPrincipal; tenantId: string };
@@ -19,9 +20,11 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [context.getHandler(), context.getClass()])) {
+    const targets = [context.getHandler(), context.getClass()];
+    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, targets)) {
       return true;
     }
+    if (this.reflector.getAllAndOverride<boolean>(IS_PLATFORM_ROUTE, targets) === true) return true;
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const bearer = request.header("authorization")?.replace(/^Bearer\s+/i, "");
     const token = request.cookies?.gym_access ?? bearer;
@@ -60,4 +63,3 @@ export class JwtAuthGuard implements CanActivate {
     return true;
   }
 }
-

@@ -1,7 +1,7 @@
 # Gym Growth OS - Product Owner Manual
 
-Last updated: 2026-09-27  
-Applies to: Current local MVP through Step 11A
+Last updated: 2026-09-29
+Applies to: Current local MVP through Step 12A
 
 ## 1. Purpose of This Manual
 
@@ -37,8 +37,8 @@ The Product Owner should be able to:
 - Suspend, reactivate, or cancel a gym subscription.
 - Control product configuration, releases, and pricing.
 
-The dedicated Platform Admin portal for these responsibilities is not yet
-implemented.
+The dedicated Platform Admin portal is available at `/platform`. It is a
+separate security realm from every gym workspace.
 
 ### Gym Owner
 
@@ -92,21 +92,16 @@ only the Pulse Fitness demo tenant is currently provisioned.
   in different gym tenants.
 - Roles and permissions determine which modules and actions are available.
 
-### Not yet implemented
+### Still outstanding
 
-- Platform Admin login and portal.
-- A safe Create Gym workflow.
-- Automatic creation of default roles for a new gym.
-- First-owner invitation for a new gym.
-- Subscription-plan assignment and customer billing.
-- Tenant suspension and reactivation controls.
+- Automated SaaS subscription billing and plan entitlements.
 - Per-tenant feature flags and usage limits.
 - Production support and controlled tenant impersonation.
 - A repeatable tenant import/onboarding tool.
 
-Because these controls are missing, a second gym should not be created manually
-through ad hoc SQL as a normal business process. That could omit permissions,
-sequences, default policies, or audit records.
+New gyms must be created through `/platform`, never through ad hoc SQL. Step 12A
+creates the data boundary, first branch, standard permissions, and first-Owner
+invitation in one transaction with a platform audit record.
 
 ## 5. Signing In
 
@@ -136,9 +131,8 @@ The recommended setup order for a newly provisioned gym is:
 9. Configure notification templates and reminder timings.
 10. Review reports and reconcile starting totals.
 
-The current application supports steps 2 through 10 after a tenant and its
-first owner have been created. Step 1 and first-owner provisioning still require
-the future Platform Admin workflow.
+The Platform Admin workflow now supports step 1 and first-Owner provisioning;
+the gym Owner completes steps 2 through 10 inside the new workspace.
 
 ## 7. Application Modules
 
@@ -279,10 +273,9 @@ same tenant, branch, date, archive, and void rules as the visible report.
 Permissions are enforced by both the API and the visible interface. Hiding a
 button is not the only security control.
 
-## 9. Intended Multi-Gym Customer Workflow
+## 9. Multi-Gym Customer Workflow
 
-After Platform Admin provisioning is implemented, each new gym should follow
-this process:
+Each new gym should follow this process:
 
 1. The SaaS Product Owner creates a tenant with a unique workspace slug.
 2. The Product Owner selects currency, timezone, subscription plan, limits, and
@@ -295,8 +288,29 @@ this process:
 8. Existing members, balances, and memberships are imported through a validated
    import process.
 9. The gym verifies starting totals before going live.
-10. The Product Owner monitors onboarding and support from the Platform Admin
-    portal without unrestricted cross-tenant access.
+10. The Product Owner monitors onboarding and lifecycle events from the
+    Platform Admin portal without unrestricted cross-tenant access.
+
+### Platform Admin procedure
+
+1. Open `http://localhost:3000/platform` in the local environment.
+2. Sign in with the Platform Admin credentials configured in `.env`.
+3. Select **Create gym** and enter the gym name, unique slug, first branch,
+   Owner name/email, plan label, and timezone.
+4. Create the gym and securely give the one-time invitation link to its Owner.
+5. Ask the Owner to accept the invitation while signed out or in a private
+   browser window, then sign in through the normal gym login with the new slug.
+6. Open the tenant in Platform Admin to review branches and Owner readiness.
+7. Use **Suspend** when access must be stopped temporarily. Active tenant
+   sessions are revoked and queued notifications are cancelled.
+8. Use **Reactivate** to restore access after the business decision is approved.
+9. Use **Archive** only when the customer relationship is closed. Archival is
+   non-destructive but blocks operational access.
+10. Review **Audit history** after every onboarding or lifecycle change.
+
+Platform Admin credentials must not be given to gym Owners. The portal exposes
+tenant setup metadata and aggregate counts, not member, payment, attendance,
+lead, notification, or report records.
 
 Example future workspaces could be:
 
@@ -345,24 +359,12 @@ secured tenant.
 
 ## 11. Recommended Next Product Increment
 
-To use the application with different gym owners, the next essential product
-increment should be **Platform Admin and Tenant Provisioning**.
-
-Minimum deliverables:
-
-- Platform Admin authentication separated from tenant roles.
-- Create, view, suspend, reactivate, and archive gym tenants.
-- Unique workspace-slug validation.
-- First branch and first owner creation.
-- Single-use first-owner invitation.
-- Automatic default-role and permission creation.
-- Tenant currency, timezone, subscription, limits, and feature settings.
-- Provisioning audit trail.
-- A tenant readiness checklist.
-- A repeatable and tested rollback process for failed provisioning.
-
-Only after this workflow passes tenant-isolation and onboarding tests should the
-Product Owner onboard a second real gym through the application.
+Step 12A Platform Admin and Tenant Provisioning is implemented and awaiting
+product-owner acceptance. The next increment is **Step 12B: Production
+Readiness**, covering deployment, HTTPS, managed secrets, backups and restore
+tests, CI/CD, monitoring, rate limiting, security review, runbooks, and an
+initial validated CSV import workflow. Do not onboard a real paying gym until
+those controls are implemented and accepted.
 
 ## 12. Local Development Operation
 
@@ -386,6 +388,7 @@ Open:
 
 ```text
 http://localhost:3000
+http://localhost:3000/platform
 ```
 
 Use `Ctrl+C` in each terminal to stop the services. PostgreSQL may remain
@@ -423,7 +426,7 @@ service. The following remain outstanding:
 - Monitoring, alerting, and error tracking.
 - Rate limiting and production Redis strategy.
 - Secrets management and credential rotation.
-- Platform Admin and safe tenant provisioning.
+- Product-owner acceptance of Platform Admin provisioning.
 - Customer subscription billing.
 - Data import tooling and validation.
 - Privacy, retention, support, and operational policies.
@@ -431,4 +434,3 @@ service. The following remain outstanding:
 
 The product should not hold real customer data or be sold as production-ready
 until these controls have been planned, implemented, and accepted.
-

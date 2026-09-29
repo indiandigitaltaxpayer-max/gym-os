@@ -174,8 +174,12 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   private async deliver(eventId: string) {
     const claimed = await this.prisma.notificationEvent.updateMany({ where: { id: eventId, status: { in: [NotificationStatus.SCHEDULED, NotificationStatus.QUEUED, NotificationStatus.FAILED] } }, data: { status: NotificationStatus.PROCESSING, lastAttemptAt: new Date(), attemptCount: { increment: 1 } } });
     if (!claimed.count) return;
-    const event = await this.prisma.notificationEvent.findUnique({ where: { id: eventId } });
+    const event = await this.prisma.notificationEvent.findUnique({ where: { id: eventId }, include: { tenant: { select: { status: true } } } });
     if (!event) return;
+    if (event.tenant.status !== "ACTIVE" && event.tenant.status !== "TRIAL") {
+      await this.prisma.notificationEvent.update({ where: { id: eventId }, data: { status: NotificationStatus.CANCELLED, nextAttemptAt: null, errorCode: "TENANT_INACTIVE", errorMessage: "Gym workspace is not active" } });
+      return;
+    }
     const attempt = await this.prisma.notificationDeliveryAttempt.create({ data: { tenantId: event.tenantId, eventId, attemptNumber: event.attemptCount, status: DeliveryAttemptStatus.STARTED, provider: "simulated" } });
     try {
       const payload = (event.payload ?? {}) as { simulateFailure?: boolean };

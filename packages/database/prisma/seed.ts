@@ -61,6 +61,26 @@ async function main() {
     update: {},
     create: { userId: owner.id, branchId: branch.id },
   });
+
+  const platformEmail = process.env.PLATFORM_ADMIN_EMAIL?.trim().toLowerCase()
+    ?? (process.env.NODE_ENV === "production" ? undefined : ownerEmail);
+  const platformPassword = process.env.PLATFORM_ADMIN_PASSWORD
+    ?? (process.env.NODE_ENV === "production" ? undefined : ownerPassword);
+  if (platformEmail && platformPassword) {
+    await prisma.platformAdmin.upsert({
+      where: { email: platformEmail },
+      update: { status: "ACTIVE", passwordHash: await hash(platformPassword) },
+      create: {
+        email: platformEmail,
+        name: process.env.PLATFORM_ADMIN_NAME?.trim() || "Platform Administrator",
+        status: "ACTIVE",
+        passwordHash: await hash(platformPassword),
+      },
+    });
+    console.log(`Seeded platform administrator ${platformEmail}`);
+  } else {
+    console.log("Skipped platform administrator seed; configure PLATFORM_ADMIN_EMAIL and PLATFORM_ADMIN_PASSWORD");
+  }
   console.log(`NEXT_PUBLIC_DEV_TENANT_ID=${tenant.id}`);
   console.log(`Seeded branch ${branch.name} (${branch.id})`);
   console.log(`Seeded owner ${owner.email}`);
